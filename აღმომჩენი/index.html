@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>დალიე და იბატონე</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background:#f2f2f2; }
+    h1 { text-align: center; }
+
+    .layout {
+      display:flex;
+      gap:40px;
+      align-items:flex-start;
+      justify-content:center;
+      margin-top:30px;
+    }
+
+    .left-panel { width:320px; }
+
+    select {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #aaa;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top:20px;
+      padding:12px 20px;
+      font-size:16px;
+      width:100%;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    #hints {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .hint-img {
+      background:#ddd;
+      border-radius:12px;
+      border:2px solid #bbb;
+      overflow:hidden;
+      text-align:center;
+      color:#555;
+      font-size:20px;
+      display:inline-block;
+    }
+
+    .hint-img img,
+    .hint-img video {
+      max-height:600px;
+      width:auto;
+      height:auto;
+      display:block;
+    }
+    .scores {
+      margin-top: 25px;
+    }
+
+    .score-row {
+  display: flex;
+  flex-direction: column; 
+  margin-bottom: 15px;
+}
+
+.score-row label {
+  font-size: 16px;
+  margin-bottom: 5px; 
+  font-weight: bold;
+}
+
+    .score-row input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>აღმომჩენი</h1>
+
+  <div class="layout">
+    <div class="left-panel">
+      <label>თემა:</label>
+      <select id="topicDropdown"></select>
+
+      <label>კითხვა:</label>
+      <select id="questionDropdown"></select>
+
+      <button id="nextHintBtn">შემდეგი მინიშნება</button>
+
+      <div class="scores">
+        <div class="score-row">
+          <label>თიკო და ის 2:</label>
+          <input type="number" step="100" id="score1" placeholder="ქულა" />
+        </div>
+
+        <div class="score-row">
+          <label>დუ ბისტ გუთ გუნუგ:</label>
+          <input type="number" step="100" id="score2" placeholder="ქულა" />
+        </div>
+
+        <div class="score-row">
+          <label>დაგვიანებულები:</label>
+          <input type="number" step="100" id="score3" placeholder="ქულა" />
+        </div>
+      </div>
+    </div>
+
+    <div id="hints">
+      <div class="hint-img" id="hintDisplay"></div>
+    </div>
+  </div>
+
+  <script>
+   const data = {
+      "ბერლინის კედელი": {
+        Q1: ["img/ბერლინის კედელი/I/I.jpg", "img/ბერლინის კედელი/I/II.jpg", "img/ბერლინის კედელი/I/III.jpg"],
+        Q2: ["img/ბერლინის კედელი/II/I.jpg", "img/ბერლინის კედელი/II/II.jpg", "img/ბერლინის კედელი/II/III.jpg"],
+        Q3: ["img/ბერლინის კედელი/III/I.jpg", "img/ბერლინის კედელი/III/II.jpg", "img/ბერლინის კედელი/III/III.jpg"]
+      },
+      "ვადაგასულები": {
+        Q1: ["img/ვადაგასულები/I/I.jpg", "img/ვადაგასულები/I/II.jpg", "img/ვადაგასულები/I/III.jpg"],
+        Q2: ["img/ვადაგასულები/II/I.jpg", "img/ვადაგასულები/II/II.jpg", "img/ვადაგასულები/II/III.jpg"],
+        Q3: ["img/ვადაგასულები/III/I.jpg", "img/ვადაგასულები/III/II.jpg", "img/ვადაგასულები/III/III.jpg"]
+      },
+      "ტიტუუუულარულები": {
+        Q1: ["img/ტიტუუუულარულები/I/I.jpg", "img/ტიტუუუულარულები/I/II.jpg", "img/ტიტუუუულარულები/I/III.jpg"],
+        Q2: ["img/ტიტუუუულარულები/II/I.jpg", "img/ტიტუუუულარულები/II/II.jpg", "img/ტიტუუუულარულები/II/III.jpg"],
+        Q3: ["img/ტიტუუუულარულები/III/I.jpg", "img/ტიტუუუულარულები/III/II.jpg", "img/ტიტუუუულარულები/III/III.jpg"]
+      },
+      "მადლიერების დღეს შეიჭამა თურქეთი!": {
+        Q1: ["img/მადლიერების დღეს შეიჭამა თურქეთი!/I/I.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/I/II.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/I/III.mp3"],
+        Q2: ["img/მადლიერების დღეს შეიჭამა თურქეთი!/II/I.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/II/II.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/II/III.jpg"],
+        Q3: ["img/მადლიერების დღეს შეიჭამა თურქეთი!/III/I.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/III/II.jpg", "img/მადლიერების დღეს შეიჭამა თურქეთი!/III/III.jpg"]
+      },
+
+      "ღმერთი სამობითაა": {
+        Q1: ["img/ღმერთი სამობითაა/I/I.jpg","img/ღმერთი სამობითაა/I/II.jpg","img/ღმერთი სამობითაა/I/III.jpg"   ],
+        Q2: ["img/ღმერთი სამობითაა/II/I.jpg","img/ღმერთი სამობითაა/II/II.jpg","img/ღმერთი სამობითაა/II/III.mp3"],
+        Q3: ["img/ღმერთი სამობითაა/III/I.jpg","img/ღმერთი სამობითაა/III/II.jpg","img/ღმერთი სამობითაა/III/III.jpg"]
+      },
+
+      "ეს დათისია ხო?": {
+        Q1: ["img/ეს დათისია ხო/I/I.jpg", "img/ეს დათისია ხო/I/II.jpg", "img/ეს დათისია ხო/I/III.mp3"],
+        Q2: ["img/ეს დათისია ხო/II/I.jpg", "img/ეს დათისია ხო/II/II.jpg", "img/ეს დათისია ხო/II/III.jpg"],
+        Q3: ["img/ეს დათისია ხო/III/I.jpg", "img/ეს დათისია ხო/III/II.jpg", "img/ეს დათისია ხო/III/III.jpg"]
+      }
+    };
+
+    const topicDropdown = document.getElementById("topicDropdown");
+    const questionDropdown = document.getElementById("questionDropdown");
+    const hintDisplay = document.getElementById("hintDisplay");
+    const nextHintBtn = document.getElementById("nextHintBtn");
+
+    let currentHints = [];
+    let hintIndex = 0;
+
+    // Populate Topic Dropdown
+    for (let topic in data) {
+      let opt = document.createElement("option");
+      opt.value = topic;
+      opt.textContent = topic;
+      topicDropdown.appendChild(opt);
+    }
+    
+    // Topic Change Event
+    topicDropdown.addEventListener("change", () => {
+      localStorage.setItem("selectedTopic", topicDropdown.value);
+      updateQuestions();
+      loadHints();
+    });
+
+    // Question Change Event
+    questionDropdown.addEventListener("change", () => {
+      localStorage.setItem("selectedQuestion", questionDropdown.value);
+      loadHints();
+    });
+
+    function updateQuestions() {
+      questionDropdown.innerHTML = "";
+      if (!topicDropdown.value) return;
+      
+      const questions = Object.keys(data[topicDropdown.value]);
+      questions.forEach(q => {
+        let opt = document.createElement("option");
+        opt.value = q;
+        opt.textContent = q;
+        questionDropdown.appendChild(opt);
+      });
+    }
+
+    function loadHints() {
+      const topic = topicDropdown.value;
+      const question = questionDropdown.value;
+
+      if (!topic || !question) return;
+
+      currentHints = data[topic][question];
+      hintIndex = 0;
+
+      hintDisplay.innerHTML = "";
+      hintDisplay.style.width = "auto";
+      hintDisplay.style.height = "auto";
+    }
+
+    nextHintBtn.addEventListener("click", () => {
+      if (hintIndex >= currentHints.length) return;
+
+      const hintPath = currentHints[hintIndex];
+      hintDisplay.innerHTML = "";
+
+      if (hintPath.endsWith(".mp3")) {
+        const audio = document.createElement("audio");
+        audio.src = hintPath;
+        audio.controls = true;
+
+        hintDisplay.style.width = "400px";
+        hintDisplay.style.height = "120px";
+
+        hintDisplay.appendChild(audio);
+
+      } else if(hintPath.endsWith(".mp4")) {
+        const video = document.createElement("video");
+        video.src = hintPath;
+        video.controls = true;
+
+        video.onloadedmetadata = () => {
+          let w = video.videoWidth;
+          let h = video.videoHeight;
+
+          if (h > 600) {
+            const scale = 600 / h;
+            h = 600;
+            w = w * scale;
+          }
+
+          hintDisplay.style.width = w + "px";
+          hintDisplay.style.height = h + "px";
+
+          hintDisplay.appendChild(video);
+        };
+      } else {
+        const img = new Image();
+        img.src = hintPath;
+
+        img.onload = () => {
+          let w = img.naturalWidth;
+          let h = img.naturalHeight;
+
+          if (h > 600) {
+            const scale = 600 / h;
+            h = 600;
+            w = w * scale;
+          }
+
+          hintDisplay.style.width = w + "px";
+          hintDisplay.style.height = h + "px";
+
+          hintDisplay.appendChild(img);
+        };
+      }
+
+      hintIndex++;
+    });
+
+    // Score Tracking with localStorage
+    const scoreInputs = ["score1", "score2", "score3"];
+    
+    scoreInputs.forEach(id => {
+      const inputElement = document.getElementById(id);
+      
+      // Load score if it exists
+      if (localStorage.getItem(id)) {
+        inputElement.value = localStorage.getItem(id);
+      }
+      
+      // Save score on change/input
+      inputElement.addEventListener("input", () => {
+        localStorage.setItem(id, inputElement.value);
+      });
+    });
+
+    // Initialize State from localStorage on Page Load
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTopic = localStorage.getItem("selectedTopic");
+      const savedQuestion = localStorage.getItem("selectedQuestion");
+
+      if (savedTopic && data[savedTopic]) {
+        topicDropdown.value = savedTopic;
+      }
+      
+      updateQuestions();
+
+      if (savedQuestion && questionDropdown.querySelector(`option[value="${savedQuestion}"]`)) {
+        questionDropdown.value = savedQuestion;
+      }
+
+      loadHints();
+    });
+  </script>
+</body>
+</html>
